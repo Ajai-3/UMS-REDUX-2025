@@ -9,7 +9,7 @@ import userRouter from "./routes/user.routes.js"
 import adminRouter from "./routes/admin.routes.js"
 
 app.use(cors({
-    origin: "http://localhost:5174", 
+    origin: "http://localhost:5173", 
     credentials: true,
   }));
 

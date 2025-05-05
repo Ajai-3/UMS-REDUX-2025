@@ -4,7 +4,7 @@ const router = express.Router()
 
 router.post("/login", loginAdmin)
 router.get("/dashboard", adminDashboard)
-router.post("create", createUser)
+router.post("/create", createUser)
 router.patch("/edit", editUser)
 router.delete("/delete", deleteUser)
 router.post("/logout", logoutAdmin)

@@ -7,7 +7,7 @@ import { getProfile, loginUser, logoutUser, registerUser } from "../controllers/
 
 router.post('/register', registerUser)
 router.post('/login', loginUser)
-router.get('/profile', authUser, getProfile)
+router.get('/home', authUser, getProfile)
 router.post('/logout', authUser, logoutUser)
 
 

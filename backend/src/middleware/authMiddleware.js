@@ -12,24 +12,54 @@ export const authUser = async (req, res, next) => {
 
         const token = req.cookies.accessToken;
 
-        if(!token) {
-            return res.status(HttpStatus.UNAUTHORIZED).json({ message: "Unauthorized" })
+        if (!token) {
+            const refreshToken = req.cookies.refreshToken;
+            if (!refreshToken) {
+                return res.status(HttpStatus.UNAUTHORIZED).json({ message: "Unauthorized" })
+            }
+            try {
+                const decodedRefreshToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+                const user = await userModel.findById(decodedRefreshToken._id).select("-password");
+                if (!user) {
+                    return res.status(HttpStatus.UNAUTHORIZED).json({ message: "User not found" });
+                }
+
+                const newAccessToken = user.generateAccessToken();
+                res.cookie("accessToken", newAccessToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "strict",
+                    maxAge: 15 * 60 * 1000,
+                });
+
+
+                req.user = user;
+                return next();
+
+            } catch (error) {
+                return res.status(HttpStatus.UNAUTHORIZED).json({ message: "Invalid refresh token" });
+            }
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
-        const user = await userModel.findById(decoded._id).select("-password")
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const user = await userModel.findById(decoded._id).select("-password");
 
-        if (!user) {
-            return res.status(HttpStatus.UNAUTHORIZED).json({ message: "User not found" });
+            if (!user) {
+                return res.status(HttpStatus.UNAUTHORIZED).json({ message: "User not found" });
+            }
+
+            if (user.role !== 'user') {
+                return res.status(HttpStatus.UNAUTHORIZED).json({ message: "Access denied. Regular users only." });
+            }
+
+            req.user = user;
+            return next();
+        } catch (error) {
+            return res.status(HttpStatus.UNAUTHORIZED).json({ message: "Invalid or expired access token" });
         }
-        
-        if (user.role !== 'user') {
-            return res.status(HttpStatus.UNAUTHORIZED).json({ message: "Access denied. Regular users only." });
-        }        
 
-        req.user = user;
-        return next()
-        
     } catch (error) {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "internal server error", error: error.message })
     }

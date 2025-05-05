@@ -47,12 +47,7 @@ export const registerUser = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
-        return res.status(HttpStatus.CREATED).json({
-            message: "User registered successfully.",
-            user,
-            accessToken,
-            refreshToken
-        });
+        return res.status(HttpStatus.CREATED).json({ user });
     } catch (error) {
         if (error instanceof ZodError) {
             const errorMessage = error.errors.map((err) => err.message);
@@ -102,10 +97,7 @@ export const loginUser = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
-        return res.status(HttpStatus.OK).json({
-            message: "User logined successfully.",
-            user,
-        });
+        return res.status(HttpStatus.OK).json({ user });
         
     } catch (error) {
         if(error instanceof ZodError) {
