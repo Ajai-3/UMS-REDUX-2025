@@ -73,6 +73,8 @@ export const loginUser = async (req, res) => {
 
         const { email, password } = validatedData;
 
+        console.log(email, password)
+
         const user = await userModel.findOne({ email: email, role: "user" }).select("+password")
         if(!user) {
             return res.status(HttpStatus.UNAUTHORIZED).json({ message: "Invalid Email or Password" })
@@ -103,8 +105,6 @@ export const loginUser = async (req, res) => {
         return res.status(HttpStatus.OK).json({
             message: "User logined successfully.",
             user,
-            accessToken,
-            refreshToken
         });
         
     } catch (error) {

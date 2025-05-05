@@ -64,7 +64,30 @@ export const userLoginSchema = z.object({
                 /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(val),
             {
                 message:
-                    "Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character.",
+                    "Invalid Email or Password",
+            }
+        )
+})
+
+// ===========================================================================================================
+// ADMIN LOGIN SCHEMA
+// ===========================================================================================================
+// This schema validates the admin login data (email and password) before authenticating the admin.
+// ===========================================================================================================
+export const adminLoginSchema = z.object({
+    email: z
+        .string()
+        .email("Please provide a valid email address.")
+        .min(1, "Email is required."),
+
+    password: z
+        .string()
+        .refine(
+            (val) =>
+                /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(val),
+            {
+                message:
+                    "Invalid Email or Password",
             }
         )
 })
