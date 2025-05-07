@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
+import AddUserModal from "../components/AddUserModal";
 import { dashboard, deleteUser, logoutAdmin } from "../api/admin/adminService";
 
 const Dashboard: React.FC = () => {
@@ -8,6 +9,7 @@ const Dashboard: React.FC = () => {
   const [search, setSearch] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,7 +32,7 @@ const Dashboard: React.FC = () => {
     if (selectedUserId) {
       try {
         await deleteUser(selectedUserId);
-        setUsers(users.filter((user) => user._id !== selectedUserId)); // Remove deleted user
+        setUsers(users.filter((user) => user._id !== selectedUserId));
         toast.success("User deleted");
       } catch {
         toast.error("Failed to delete user");
@@ -40,20 +42,32 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleAdminLogout = async() => {
+  const handleAdminLogout = async () => {
     try {
-         await logoutAdmin();
-        toast.success("Logged out successfully")
-      } catch (error) {
-        toast.error("Failed to logout");
-      }
-  }
+      await logoutAdmin();
+      toast.success("Logged out successfully");
+    } catch (error) {
+      toast.error("Failed to logout");
+    }
+  };
+
+  const refreshUsers = async () => {
+    try {
+      const data = await dashboard(search);
+      setUsers(data.users);
+    } catch {
+      toast.error("Failed to refresh users");
+    }
+  };
 
   return (
     <div className="h-screen text-white">
       <div className="flex justify-between items-center px-32 py-4 fixed left-0 right-0 top-0 bg-zinc-900 z-10 shadow-md">
         <h1 className="font-semibold text-2xl">DASHBOARD</h1>
-        <button onClick={handleAdminLogout} className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md">
+        <button
+          onClick={handleAdminLogout}
+          className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md"
+        >
           Logout
         </button>
       </div>
@@ -66,7 +80,10 @@ const Dashboard: React.FC = () => {
             placeholder="Search users"
             className="px-4 py-2 rounded-md bg-zinc-700 flex-grow"
           />
-          <button className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-md">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-md"
+          >
             Add New User
           </button>
         </div>
@@ -118,11 +135,10 @@ const Dashboard: React.FC = () => {
         </table>
       </div>
 
-      {/* Confirmation Modal */}
       <AnimatePresence>
         {showConfirm && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 "
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -150,6 +166,15 @@ const Dashboard: React.FC = () => {
               </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showAddModal && (
+          <AddUserModal
+            onClose={() => setShowAddModal(false)}
+            onUserAdded={refreshUsers}
+          />
         )}
       </AnimatePresence>
     </div>

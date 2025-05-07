@@ -9,13 +9,37 @@ export const registerUser = async (
   image: string,
   password: string
 ) => {
-  const response = await axiosInstance.post("/users/register", {
-    name,
-    email,
-    image,
-    password,
-  });
-  return response.data;
+  try {
+    // Validate inputs
+    if (!name || !email || !image || !password) {
+      throw new Error("All fields are required");
+    }
+    
+    const response = await axiosInstance.post("/users/register", {
+      name,
+      email,
+      image,
+      password,
+    });
+    
+    return response.data;
+  } catch (error: any) {
+    console.error("Registration error:", error.response?.data || error);
+    
+    if (error.response) {
+      // The request was made and the server responded with an error
+      const errorMessage = Array.isArray(error.response.data.message) 
+        ? error.response.data.message[0] 
+        : error.response.data.message || "Registration failed";
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      // The request was made but no response was received
+      throw new Error("No response from server. Please check your connection.");
+    } else {
+      // Something happened in setting up the request
+      throw error;
+    }
+  }
 };
 
 //===========================================================================================================
@@ -23,36 +47,52 @@ export const registerUser = async (
 //===========================================================================================================
 export const loginUser = async (email: string, password: string) => {
   try {
+    if (!email || !password) {
+      throw new Error("Email and password are required");
+    }
+    
     const response = await axiosInstance.post("/users/login", { email, password });
     return response.data;
   } catch (error: any) {
+    console.error("Login error:", error.response?.data || error);
+    
     if (error.response) {
-        const message = Array.isArray(error.response.data.message)
-          ? error.response.data.message[0]
-          : error.response.data.message;
-        return message; 
-      }
-      return "An unexpected error occurred"; 
+      const message = Array.isArray(error.response.data.message)
+        ? error.response.data.message[0]
+        : error.response.data.message || "Login failed";
+      throw new Error(message);
+    } else if (error.request) {
+      throw new Error("No response from server. Please check your connection.");
+    } else {
+      throw new Error("An unexpected error occurred");
     }
+  }
 };
 
 //===========================================================================================================
-// USER ACOUNT
+// USER ACCOUNT
 //===========================================================================================================
 export const home = async () => {
   try {
-    const response = await axiosInstance.get("/users/home")
-    return response.data
-  } catch (error) {
-    
+    const response = await axiosInstance.get("/users/home");
+    return response.data;
+  } catch (error: any) {
+    console.error("Home error:", error.response?.data || error);
+    throw new Error(error.response?.data?.message || "Failed to load home data");
   }
-}
+};
+
 //===========================================================================================================
 // USER LOGOUT
 //===========================================================================================================
 export const logoutUser = async () => {
-  const response = await axiosInstance.post("/users/logout");
-  return response.data;
+  try {
+    const response = await axiosInstance.post("/users/logout");
+    return response.data;
+  } catch (error: any) {
+    console.error("Logout error:", error.response?.data || error);
+    throw new Error(error.response?.data?.message || "Failed to logout");
+  }
 };
 
 //===========================================================================================================

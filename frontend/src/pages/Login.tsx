@@ -1,24 +1,37 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { setUser } from "../redux/slices/userSlice";
 import { toast } from "react-toastify";
 import { registerUser, loginUser } from "../api/user/userService";
 import { uploadImageToCloudinary } from "../utils/cloudinary";
 import { useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
-  const [signState, setSignState] = useState("Log In");
-  const [name, setName] = useState("");
+  const [signState, setSignState] = useState<"Log In" | "Sign Up">("Log In");
   const [email, setEmail] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [image, setImage] = useState("");
-  const [imagePreview, setImagePreview] = useState<string>("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [image, setImage] = useState("");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
-  const navigate = useNavigate()
 
-  const inputStyle =
-    "bg-transparent outline-none border border-gray-600 focus:border-blue-700 p-2 rounded-md";
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,10 +40,12 @@ const Login: React.FC = () => {
       try {
         setLoading(true);
         const data = await loginUser(email, password);
-        console.log(data);
         if (data.user) {
-          toast.success("Login successfull.");
-          navigate('/home')
+          toast.success("Login successful.");
+          dispatch(setUser({
+            user: data.user,
+          }));
+          navigate('/home');
         } else {
           toast.error("Login failed");
         }
@@ -45,52 +60,86 @@ const Login: React.FC = () => {
     if (signState === "Sign Up") {
       try {
         setLoading(true);
+        
+        // Validate inputs
+        if (!name || !email || !password) {
+          toast.error("All fields are required");
+          setLoading(false);
+          return;
+        }
+        
         if (password !== confirmPassword) {
           toast.error("Passwords do not match");
+          setLoading(false);
           return;
         }
+        
         if (!imageFile) {
-          toast.error("Please upload an image.");
+          toast.error("Please upload an image");
+          setLoading(false);
+          return;
+        }
+        
+        // Password validation
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+          toast.error("Password must be at least 8 characters and include uppercase, lowercase, number, and special character");
+          setLoading(false);
           return;
         }
 
-        const url = await uploadImageToCloudinary(imageFile);
-        setImage(url);
-        const data = await registerUser(name, email, image, password);
-        if(data.user) {
-          toast.success("Account created successfully");
-          navigate('/home')
+        // Upload image
+        setImageUploading(true);
+        let imageUrl;
+        try {
+          imageUrl = await uploadImageToCloudinary(imageFile);
+          setImage(imageUrl);
+          setImageUploading(false);
+        } catch (uploadErr: any) {
+          console.error("Image upload error:", uploadErr);
+          toast.error("Image upload failed: " + uploadErr.message);
+          setLoading(false);
+          setImageUploading(false);
+          return;
+        }
+
+        // Register user
+        try {
+          const data = await registerUser(name, email, imageUrl, password);
+          if (data.user) {
+            dispatch(setUser({
+              user: data.user,
+            }));
+            toast.success("Account created successfully");
+            navigate('/home');
+          } else {
+            toast.error("Registration failed");
+          }
+        } catch (registerErr: any) {
+          console.error("Registration error:", registerErr);
+          toast.error(registerErr?.response?.data?.message || "Registration failed");
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Signup failed");
+        console.error("Signup Error:", error);
+        toast.error(error?.message || "Signup failed");
       } finally {
         setLoading(false);
-      }
-    }
-  };
-
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        setImageUploading(true);
-        setImageFile(file);
-        setImagePreview(URL.createObjectURL(file));
-      } catch (error) {
-        toast.error("Error processing image");
-      } finally {
         setImageUploading(false);
       }
     }
   };
 
-  return (
-    <div className="flex h-screen justify-center items-center flex-col">
-      <div className="flex flex-col gap-4 w-96 bg-zinc-900 border border-gray-700 p-6 rounded-md">
-        <form onSubmit={handleSubmit}>
-          <div className="flex flex-col gap-4">
-            <h1 className="text-2xl text-center">{signState}</h1>
+  const inputStyle = "w-full bg-transparent border-b border-gray-600 p-2 focus:outline-none focus:border-blue-400";
 
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 to-black">
+      <div className="bg-black bg-opacity-30 p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h1 className="text-3xl font-bold text-white mb-6 text-center">
+          {signState === "Log In" ? "Welcome Back" : "Create Account"}
+        </h1>
+
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4">
             {signState === "Sign Up" && (
               <>
                 <div className="flex justify-center relative w-full">
@@ -110,7 +159,7 @@ const Login: React.FC = () => {
                         accept="image/*"
                         onChange={handleImageChange}
                         className="absolute w-20 h-20 opacity-0 cursor-pointer"
-                        disabled={imageUploading}
+                        disabled={loading || imageUploading}
                       />
                     </>
                   )}
@@ -118,7 +167,7 @@ const Login: React.FC = () => {
                 <input
                   className={inputStyle}
                   type="text"
-                  placeholder="name"
+                  placeholder="Name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={loading || imageUploading}
@@ -129,15 +178,16 @@ const Login: React.FC = () => {
             <input
               className={inputStyle}
               type="email"
-              placeholder="email"
+              placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading || imageUploading}
             />
+
             <input
               className={inputStyle}
               type="password"
-              placeholder="password"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading || imageUploading}
@@ -147,7 +197,7 @@ const Login: React.FC = () => {
               <input
                 className={inputStyle}
                 type="password"
-                placeholder="confirm password"
+                placeholder="Confirm Password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={loading || imageUploading}
