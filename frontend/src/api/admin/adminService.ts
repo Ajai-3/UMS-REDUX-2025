@@ -63,14 +63,34 @@ export const createUser = async (name: string, email: string, image: string, pas
 //===========================================================================================================
 // EDIT USER
 //===========================================================================================================
-export const editUser = async (search: string) => {
+export const editUser = async (id: string, name: string, email: string) => {
   try {
-     const response = await axiosInstance.get("/admin/edit", {
-      params: { search },
-    }) 
-     return response.data;
+    // Validate inputs
+    if (!id || !name || !email) {
+      throw new Error("All fields are required");
+    }
+    
+    const response = await axiosInstance.patch("/admin/edit", {
+      id,
+      name,
+      email
+    });
+    
+    return response.data;
   } catch (error: any) {
-      throw error.response?.data?.message || "Something went wrong";
+    console.error("Error editing user:", error.response?.data || error.message);
+
+    if (error.response) {
+      // The request was made and the server responded with an error
+      const errorMessage = error.response.data.message || "Server error";
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      // The request was made but no response was received
+      throw new Error("No response from server. Please check your connection.");
+    } else {
+      // Something happened in setting up the request
+      throw error;
+    }
   }
 }
 
