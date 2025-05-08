@@ -40,6 +40,23 @@ const Login: React.FC = () => {
     e.preventDefault();
 
     if (signState === "Log In") {
+  
+      if (!email.trim()) {
+        toast.error("Email is required");
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        toast.error("Please enter a valid email address");
+        return;
+      }
+
+      if (!password) {
+        toast.error("Password is required");
+        return;
+      }
+
       try {
         setLoading(true);
         const data = await loginUser(email, password);
@@ -63,40 +80,51 @@ const Login: React.FC = () => {
     }
 
     if (signState === "Sign Up") {
+
+      if (!name.trim()) {
+        toast.error("Name is required");
+        return;
+      }
+
+      if (!email.trim()) {
+        toast.error("Email is required");
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        toast.error("Please enter a valid email address");
+        return;
+      }
+
+      if (!password) {
+        toast.error("Password is required");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        toast.error("Passwords do not match");
+        return;
+      }
+
+      if (!imageFile) {
+        toast.error("Please upload an image");
+        return;
+      }
+
+  
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      if (!passwordRegex.test(password)) {
+        toast.error(
+          "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+        );
+        return;
+      }
+
       try {
         setLoading(true);
 
-        // Validate inputs
-        if (!name || !email || !password) {
-          toast.error("All fields are required");
-          setLoading(false);
-          return;
-        }
-
-        if (password !== confirmPassword) {
-          toast.error("Passwords do not match");
-          setLoading(false);
-          return;
-        }
-
-        if (!imageFile) {
-          toast.error("Please upload an image");
-          setLoading(false);
-          return;
-        }
-
-        // Password validation
-        const passwordRegex =
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-        if (!passwordRegex.test(password)) {
-          toast.error(
-            "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
-          );
-          setLoading(false);
-          return;
-        }
-
-        // Upload image
         setImageUploading(true);
         let imageUrl;
         try {
@@ -111,7 +139,7 @@ const Login: React.FC = () => {
           return;
         }
 
-        // Register user
+
         try {
           const data = await registerUser(name, email, imageUrl, password);
           if (data.user) {
@@ -190,7 +218,7 @@ const Login: React.FC = () => {
 
             <input
               className={inputStyle}
-              type="email"
+              type="text"
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

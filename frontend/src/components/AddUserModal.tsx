@@ -24,13 +24,31 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !email || !password) {
-      toast.error("All fields are required");
+    // Form validation
+    if (!name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+
+    if (!email.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    if (!password) {
+      toast.error("Password is required");
       return;
     }
 
     if (!imageFile) {
-      toast.error("Please select an image file.");
+      toast.error("Please select an image file");
       return;
     }
 
@@ -101,22 +119,19 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full mb-3 px-4 py-2 rounded bg-zinc-700"
-            required
           />
           <input
-            type="email"
+            type="text"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full mb-3 px-4 py-2 rounded bg-zinc-700"
-            required
           />
           <input
             type="file"
             onChange={(e) => setImageFile(e.target.files?.[0] || null)}
             className="w-full mb-3 px-4 py-2 rounded bg-zinc-700"
             accept="image/*"
-            required
           />
           <div className="relative w-full mb-4">
             <input
@@ -125,7 +140,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 rounded bg-zinc-700 pr-10"
-              required
             />
             <button
               type="button"

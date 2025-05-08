@@ -12,14 +12,29 @@ const AdminLogin: React.FC = () => {
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Form validation
+    if (!email.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    if (!password) {
+      toast.error("Password is required");
+      return;
+    } else if (password.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+
     try {
-      if (!password) {
-        toast.error("Password is required");
-        return;
-      } else if (password.length < 8) {
-        toast.error("Invalid Email or Password");
-        return;
-      }
       const data = await loginAdmin(email, password);
 
       if (data) {
@@ -30,7 +45,7 @@ const AdminLogin: React.FC = () => {
         navigate("/admin/dashboard");
       }
     } catch (error: any) {
-      toast.error(error);
+      toast.error(error.message || "Login failed. Please try again.");
     }
   };
 
@@ -41,10 +56,10 @@ const AdminLogin: React.FC = () => {
           <h1 className="text-center text-2xl">Admin Login</h1>
           <input
             className="bg-transparent outline-none border border-gray-600 focus:border-pink-700 p-2 rounded-md"
-            type="email"
+            type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="email"
+            placeholder="Email"
           />
           <div className="relative">
             <input
