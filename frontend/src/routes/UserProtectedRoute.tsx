@@ -8,13 +8,13 @@ interface Props {
 }
 
 const UserProtectedRoute = ({ children }: Props) => {
-  const user = useSelector((state: RootState) => state.user.user); 
+  const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated); 
 
-  if (!user) {
+  if (!isAuthenticated) {
     return <Navigate to="/users/login" />;
   }
 
-  return children; 
+  return <>{children}</>;
 };
 
 export default UserProtectedRoute;

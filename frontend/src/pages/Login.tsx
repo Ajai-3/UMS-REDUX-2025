@@ -40,7 +40,6 @@ const Login: React.FC = () => {
     e.preventDefault();
 
     if (signState === "Log In") {
-  
       if (!email.trim()) {
         toast.error("Email is required");
         return;
@@ -65,9 +64,11 @@ const Login: React.FC = () => {
           dispatch(
             setUser({
               user: data.user,
+              token: data.token || null,
+              isAuthenticated: true
             })
           );
-          navigate("/home");
+          navigate("/users/home");
         } else {
           toast.error("Login failed");
         }
@@ -80,7 +81,6 @@ const Login: React.FC = () => {
     }
 
     if (signState === "Sign Up") {
-
       if (!name.trim()) {
         toast.error("Name is required");
         return;
@@ -112,7 +112,6 @@ const Login: React.FC = () => {
         return;
       }
 
-  
       const passwordRegex =
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
       if (!passwordRegex.test(password)) {
@@ -139,17 +138,18 @@ const Login: React.FC = () => {
           return;
         }
 
-
         try {
           const data = await registerUser(name, email, imageUrl, password);
           if (data.user) {
             dispatch(
               setUser({
                 user: data.user,
+                token: data.token || null,
+                isAuthenticated: true
               })
             );
             toast.success("Account created successfully");
-            navigate("/home");
+            navigate("/users/home");
           } else {
             toast.error("Registration failed");
           }

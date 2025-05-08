@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logOut } from "../redux/slices/adminSlice";
 import AddUserModal from "../components/AddUserModal";
 import EditUserModal from "../components/EditUserModal";
 import { dashboard, deleteUser, logoutAdmin } from "../api/admin/adminService";
@@ -15,6 +17,7 @@ interface User {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -72,8 +75,8 @@ const Dashboard: React.FC = () => {
     try {
       await logoutAdmin();
 
-      // Clear localStorage authentication flag
-      localStorage.removeItem("adminAuth");
+      // Dispatch logout action to Redux
+      dispatch(logOut());
 
       toast.success("Logged out successfully");
       // Redirect to login page

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { setAdmin } from "../redux/slices/adminSlice";
 import { loginAdmin } from "../api/admin/adminService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +11,7 @@ const AdminLogin: React.FC = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,8 +41,13 @@ const AdminLogin: React.FC = () => {
       const data = await loginAdmin(email, password);
 
       if (data) {
-        // Store in localStorage for authentication
-        localStorage.setItem("adminAuth", "true");
+        // Store admin data in Redux
+        dispatch(
+          setAdmin({
+            admin: data.admin,
+            token: data.token || null,
+          })
+        );
 
         toast.success("Admin login successful");
         navigate("/admin/dashboard");
