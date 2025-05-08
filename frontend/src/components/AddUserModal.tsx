@@ -1,18 +1,23 @@
 import React, { useState } from "react";
 import { createUser } from "../api/admin/adminService";
 import { toast } from "react-toastify";
-import { uploadImageToCloudinary } from "../utils/cloudinary"; 
+import { uploadImageToCloudinary } from "../utils/cloudinary";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 interface AddUserModalProps {
   onClose: () => void;
   onUserAdded: () => void;
 }
 
-const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onUserAdded }) => {
+const AddUserModal: React.FC<AddUserModalProps> = ({
+  onClose,
+  onUserAdded,
+}) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
 
@@ -29,9 +34,12 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onUserAdded }) => 
       return;
     }
 
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
-      toast.error("Password must be at least 8 characters and include uppercase, lowercase, number, and special character");
+      toast.error(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+      );
       return;
     }
 
@@ -50,10 +58,10 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onUserAdded }) => 
         setImageUploading(false);
         return;
       }
-      
+
       try {
         const response = await createUser(name, email, imageUrl, password);
-        
+
         if (response) {
           toast.success("User created successfully!");
           setName("");
@@ -77,12 +85,12 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onUserAdded }) => 
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
       onClick={onClose}
     >
-      <div 
-        className="bg-zinc-800 p-6 rounded-lg w-full max-w-md" 
+      <div
+        className="bg-zinc-800 p-6 rounded-lg w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         <form onSubmit={handleSubmit}>
@@ -110,21 +118,34 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onUserAdded }) => 
             accept="image/*"
             required
           />
-          <input
-            type="password"
-            placeholder="Password (8+ chars with upper, lower, number, special)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full mb-4 px-4 py-2 rounded bg-zinc-700"
-            required
-          />
+          <div className="relative w-full mb-4">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password (8+ chars with upper, lower, number, special)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 rounded bg-zinc-700 pr-10"
+              required
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+            </button>
+          </div>
           <div className="flex justify-between">
             <button
               type="submit"
               className="bg-cyan-600 hover:bg-cyan-700 px-6 py-2 rounded text-white"
               disabled={isLoading || imageUploading}
             >
-              {isLoading ? "Creating..." : imageUploading ? "Uploading..." : "Create User"}
+              {isLoading
+                ? "Creating..."
+                : imageUploading
+                ? "Uploading..."
+                : "Create User"}
             </button>
             <button
               type="button"

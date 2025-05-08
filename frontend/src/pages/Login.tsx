@@ -5,12 +5,15 @@ import { toast } from "react-toastify";
 import { registerUser, loginUser } from "../api/user/userService";
 import { uploadImageToCloudinary } from "../utils/cloudinary";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login: React.FC = () => {
   const [signState, setSignState] = useState<"Log In" | "Sign Up">("Log In");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [name, setName] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [image, setImage] = useState("");
@@ -42,10 +45,12 @@ const Login: React.FC = () => {
         const data = await loginUser(email, password);
         if (data.user) {
           toast.success("Login successful.");
-          dispatch(setUser({
-            user: data.user,
-          }));
-          navigate('/home');
+          dispatch(
+            setUser({
+              user: data.user,
+            })
+          );
+          navigate("/home");
         } else {
           toast.error("Login failed");
         }
@@ -60,30 +65,33 @@ const Login: React.FC = () => {
     if (signState === "Sign Up") {
       try {
         setLoading(true);
-        
+
         // Validate inputs
         if (!name || !email || !password) {
           toast.error("All fields are required");
           setLoading(false);
           return;
         }
-        
+
         if (password !== confirmPassword) {
           toast.error("Passwords do not match");
           setLoading(false);
           return;
         }
-        
+
         if (!imageFile) {
           toast.error("Please upload an image");
           setLoading(false);
           return;
         }
-        
+
         // Password validation
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        const passwordRegex =
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         if (!passwordRegex.test(password)) {
-          toast.error("Password must be at least 8 characters and include uppercase, lowercase, number, and special character");
+          toast.error(
+            "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+          );
           setLoading(false);
           return;
         }
@@ -107,17 +115,21 @@ const Login: React.FC = () => {
         try {
           const data = await registerUser(name, email, imageUrl, password);
           if (data.user) {
-            dispatch(setUser({
-              user: data.user,
-            }));
+            dispatch(
+              setUser({
+                user: data.user,
+              })
+            );
             toast.success("Account created successfully");
-            navigate('/home');
+            navigate("/home");
           } else {
             toast.error("Registration failed");
           }
         } catch (registerErr: any) {
           console.error("Registration error:", registerErr);
-          toast.error(registerErr?.response?.data?.message || "Registration failed");
+          toast.error(
+            registerErr?.response?.data?.message || "Registration failed"
+          );
         }
       } catch (error: any) {
         console.error("Signup Error:", error);
@@ -129,7 +141,8 @@ const Login: React.FC = () => {
     }
   };
 
-  const inputStyle = "w-full bg-transparent border-b border-gray-600 p-2 focus:outline-none focus:border-blue-400";
+  const inputStyle =
+    "w-full bg-transparent border-b border-gray-600 p-2 focus:outline-none focus:border-blue-400";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 to-black">
@@ -184,24 +197,46 @@ const Login: React.FC = () => {
               disabled={loading || imageUploading}
             />
 
-            <input
-              className={inputStyle}
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading || imageUploading}
-            />
-
-            {signState === "Sign Up" && (
+            <div className="relative">
               <input
                 className={inputStyle}
-                type="password"
-                placeholder="Confirm Password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 disabled={loading || imageUploading}
               />
+              <button
+                type="button"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+              </button>
+            </div>
+
+            {signState === "Sign Up" && (
+              <div className="relative">
+                <input
+                  className={inputStyle}
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={loading || imageUploading}
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <FaEyeSlash size={18} />
+                  ) : (
+                    <FaEye size={18} />
+                  )}
+                </button>
+              </div>
             )}
 
             <button
