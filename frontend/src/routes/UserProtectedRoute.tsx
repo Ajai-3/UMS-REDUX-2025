@@ -1,17 +1,15 @@
 import React from "react";
-import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
-import { RootState } from "../redux/store";
 
 interface Props {
   children: React.ReactElement;
 }
 
 const UserProtectedRoute = ({ children }: Props) => {
-  const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated); 
+  const isLoggedIn = localStorage.getItem("userLoggedIn") === "true";
 
-  if (!isAuthenticated) {
-    return <Navigate to="/users/login" />;
+  if (!isLoggedIn) {
+    return <Navigate to="/users/login" replace />;
   }
 
   return <>{children}</>;

@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setAdmin } from "../redux/slices/adminSlice";
-import { loginAdmin } from "../api/admin/adminService";
+import { loginAdmin, dashboard } from "../api/admin/adminService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -12,6 +12,38 @@ const AdminLogin: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  // Check if admin is already logged in when component mounts
+  useEffect(() => {
+    // Check for admin auth cookies
+    const hasAdminCookies =
+      document.cookie.includes("adminAccessToken") ||
+      document.cookie.includes("adminRefreshToken");
+
+    if (hasAdminCookies) {
+      // If they have admin auth cookies, try to get their dashboard
+      const verifyAdminAuth = async () => {
+        try {
+          const data = await dashboard("");
+          if (data) {
+            // If successful, update Redux and redirect
+            dispatch(
+              setAdmin({
+                admin: { email },
+                isAuthenticated: true,
+              })
+            );
+            navigate("/admin/dashboard");
+          }
+        } catch (error) {
+          // If error, cookies might be invalid
+          console.error("Failed to verify admin authentication:", error);
+        }
+      };
+
+      verifyAdminAuth();
+    }
+  }, [dispatch, navigate, email]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,9 +77,11 @@ const AdminLogin: React.FC = () => {
         dispatch(
           setAdmin({
             admin: data.admin,
-            token: data.token || null,
           })
         );
+
+        // Set localStorage flag for admin authentication
+        localStorage.setItem("adminLoggedIn", "true");
 
         toast.success("Admin login successful");
         navigate("/admin/dashboard");

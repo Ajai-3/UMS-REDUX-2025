@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "../redux/slices/userSlice";
 import { toast } from "react-toastify";
-import { registerUser, loginUser } from "../api/user/userService";
+import { registerUser, loginUser, home } from "../api/user/userService";
 import { uploadImageToCloudinary } from "../utils/cloudinary";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -23,6 +23,38 @@ const Login: React.FC = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Check if user is already logged in when component mounts
+  useEffect(() => {
+    // Check for auth cookies
+    const hasCookies =
+      document.cookie.includes("accessToken") ||
+      document.cookie.includes("refreshToken");
+
+    if (hasCookies) {
+      // If they have auth cookies, try to get their profile
+      const fetchUserProfile = async () => {
+        try {
+          const data = await home();
+          if (data) {
+            // If successful, update Redux and redirect
+            dispatch(
+              setUser({
+                user: data,
+                isAuthenticated: true,
+              })
+            );
+            navigate("/users/home");
+          }
+        } catch (error) {
+          // If error, cookies might be invalid
+          console.error("Failed to verify authentication:", error);
+        }
+      };
+
+      fetchUserProfile();
+    }
+  }, [dispatch, navigate]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,13 +93,18 @@ const Login: React.FC = () => {
         const data = await loginUser(email, password);
         if (data.user) {
           toast.success("Login successful.");
+          console.log(data);
+          // Store user data in Redux
           dispatch(
             setUser({
               user: data.user,
-              token: data.token || null,
-              isAuthenticated: true
+              isAuthenticated: true,
             })
           );
+
+          // Set localStorage flag for authentication
+          localStorage.setItem("userLoggedIn", "true");
+
           navigate("/users/home");
         } else {
           toast.error("Login failed");
@@ -141,13 +178,17 @@ const Login: React.FC = () => {
         try {
           const data = await registerUser(name, email, imageUrl, password);
           if (data.user) {
+            // Store user data in Redux
             dispatch(
               setUser({
                 user: data.user,
-                token: data.token || null,
-                isAuthenticated: true
+                isAuthenticated: true,
               })
             );
+
+            // Set localStorage flag for authentication
+            localStorage.setItem("userLoggedIn", "true");
+
             toast.success("Account created successfully");
             navigate("/users/home");
           } else {

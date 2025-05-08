@@ -73,16 +73,25 @@ const Dashboard: React.FC = () => {
 
   const handleAdminLogout = async () => {
     try {
+      // Call the logout API to clear cookies
       await logoutAdmin();
 
       // Dispatch logout action to Redux
       dispatch(logOut());
+
+      // Clear localStorage authentication flag
+      localStorage.removeItem("adminLoggedIn");
 
       toast.success("Logged out successfully");
       // Redirect to login page
       navigate("/admin/login");
     } catch (error) {
       toast.error("Failed to logout");
+
+      // Even if the API call fails, still clear authentication state and redirect
+      dispatch(logOut());
+      localStorage.removeItem("adminLoggedIn");
+      navigate("/admin/login");
     }
   };
 
