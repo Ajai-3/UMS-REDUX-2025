@@ -8,8 +8,13 @@ interface Props {
 }
 
 const UserProtectedRoute = ({ children }: Props) => {
-  const user = useSelector((state: RootState) => state.user.user);
-  return user ? children : <Navigate to="/users/login" />;
+  const user = useSelector((state: RootState) => state.user.user); 
+
+  if (!user) {
+    return <Navigate to="/users/login" />;
+  }
+
+  return children; 
 };
 
 export default UserProtectedRoute;
