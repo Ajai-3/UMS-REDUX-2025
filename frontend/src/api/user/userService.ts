@@ -10,33 +10,29 @@ export const registerUser = async (
   password: string
 ) => {
   try {
-    // Validate inputs
     if (!name || !email || !image || !password) {
       throw new Error("All fields are required");
     }
-    
+
     const response = await axiosInstance.post("/users/register", {
       name,
       email,
       image,
       password,
     });
-    
+
     return response.data;
   } catch (error: any) {
     console.error("Registration error:", error.response?.data || error);
-    
+
     if (error.response) {
-      // The request was made and the server responded with an error
-      const errorMessage = Array.isArray(error.response.data.message) 
-        ? error.response.data.message[0] 
+      const errorMessage = Array.isArray(error.response.data.message)
+        ? error.response.data.message[0]
         : error.response.data.message || "Registration failed";
       throw new Error(errorMessage);
     } else if (error.request) {
-      // The request was made but no response was received
       throw new Error("No response from server. Please check your connection.");
     } else {
-      // Something happened in setting up the request
       throw error;
     }
   }
@@ -50,12 +46,15 @@ export const loginUser = async (email: string, password: string) => {
     if (!email || !password) {
       throw new Error("Email and password are required");
     }
-    
-    const response = await axiosInstance.post("/users/login", { email, password });
+
+    const response = await axiosInstance.post("/users/login", {
+      email,
+      password,
+    });
     return response.data;
   } catch (error: any) {
     console.error("Login error:", error.response?.data || error);
-    
+
     if (error.response) {
       const message = Array.isArray(error.response.data.message)
         ? error.response.data.message[0]
@@ -78,7 +77,53 @@ export const home = async () => {
     return response.data;
   } catch (error: any) {
     console.error("Home error:", error.response?.data || error);
-    throw new Error(error.response?.data?.message || "Failed to load home data");
+    throw new Error(
+      error.response?.data?.message || "Failed to load home data"
+    );
+  }
+};
+
+//===========================================================================================================
+// GET USER PROFILE
+//===========================================================================================================
+export const getUserProfile = async () => {
+  const response = await axiosInstance.get("/profile");
+  return response.data;
+};
+
+//===========================================================================================================
+// UPDATE USER PROFILE
+//===========================================================================================================
+export const updateUserProfile = async (
+  name: string,
+  email: string,
+  image: string
+) => {
+  try {
+    if (!name || !email || !image) {
+      throw new Error("All fields are required");
+    }
+
+    const response = await axiosInstance.put("/users/update-profile", {
+      name,
+      email,
+      image,
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error("Update profile error:", error.response?.data || error);
+
+    if (error.response) {
+      const errorMessage = Array.isArray(error.response.data.message)
+        ? error.response.data.message[0]
+        : error.response.data.message || "Failed to update profile";
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      throw new Error("No response from server. Please check your connection.");
+    } else {
+      throw error;
+    }
   }
 };
 
@@ -95,10 +140,3 @@ export const logoutUser = async () => {
   }
 };
 
-//===========================================================================================================
-// GET USER PROFILE
-//===========================================================================================================
-export const getUserProfile = async () => {
-  const response = await axiosInstance.get("/profile");
-  return response.data;
-};

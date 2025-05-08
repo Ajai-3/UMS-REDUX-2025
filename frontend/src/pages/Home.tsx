@@ -5,19 +5,20 @@ import { toast } from "react-toastify";
 import { home, logoutUser } from "../api/user/userService";
 import { logOut } from "../redux/slices/userSlice";
 import { RootState } from "../redux/store";
+import EditProfileModal from "../components/EditProfileModal";
 
 const Home: React.FC = () => {
   const [user, setUser] = useState<any>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const userData = useSelector((state: RootState) => state.user.user);
 
   useEffect(() => {
-    // If we already have user data in Redux, use it
+
     if (userData) {
       setUser(userData);
     } else {
-      // Otherwise fetch from API
       const fetchUserProfile = async () => {
         try {
           const data = await home();
@@ -38,24 +39,18 @@ const Home: React.FC = () => {
 
   const handleLogOut = async () => {
     try {
-      // Call the logout API to clear cookies
       await logoutUser();
-
-      // Clear user data from Redux
       dispatch(logOut());
 
-      // Clear localStorage authentication flag
       localStorage.removeItem("userLoggedIn");
 
       toast.success("Logout successful");
 
-      // Redirect to login page
       navigate("/users/login");
     } catch (error) {
       toast.error("Logout failed");
       console.error(error);
 
-      // Even if the API call fails, still clear authentication state and redirect
       dispatch(logOut());
       localStorage.removeItem("userLoggedIn");
       navigate("/users/login");
@@ -77,16 +72,32 @@ const Home: React.FC = () => {
       <main className="mt-28 flex flex-col items-center space-y-4">
         {user ? (
           <div className="bg-gray-800 p-6 rounded-lg shadow-md text-center">
-            <img
-              src={user.image || "/default-user.png"}
-              alt="User Profile"
-              className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
-            />
+            <div className="relative">
+              <img
+                src={user.image || "/default-user.png"}
+                alt="User Profile"
+                className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
+              />
+            </div>
             <p className="text-lg font-medium">{user.name}</p>
-            <p className="text-sm text-gray-300">{user.email}</p>
+            <p className="text-sm text-gray-300 mb-4">{user.email}</p>
+
+            <button
+              onClick={() => setShowEditModal(true)}
+              className="bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200"
+            >
+              Edit Profile
+            </button>
           </div>
         ) : (
           <p>Loading...</p>
+        )}
+
+        {showEditModal && user && (
+          <EditProfileModal
+            user={user}
+            onClose={() => setShowEditModal(false)}
+          />
         )}
       </main>
     </div>
