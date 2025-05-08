@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import AddUserModal from "../components/AddUserModal";
 import EditUserModal from "../components/EditUserModal";
 import { dashboard, deleteUser, logoutAdmin } from "../api/admin/adminService";
@@ -13,6 +14,7 @@ interface User {
 }
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -25,8 +27,8 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       fetchUsers();
-    }, 500); 
-  
+    }, 500);
+
     return () => clearTimeout(delayDebounce);
   }, [search]);
 
@@ -41,8 +43,6 @@ const Dashboard: React.FC = () => {
       setIsLoading(false);
     }
   };
-
-
 
   const handleDeleteClick = (id: string) => {
     setSelectedUserId(id);
@@ -71,9 +71,13 @@ const Dashboard: React.FC = () => {
   const handleAdminLogout = async () => {
     try {
       await logoutAdmin();
+
+      // Clear localStorage authentication flag
+      localStorage.removeItem("adminAuth");
+
       toast.success("Logged out successfully");
       // Redirect to login page
-      window.location.href = "/admin";
+      navigate("/admin/login");
     } catch (error) {
       toast.error("Failed to logout");
     }
@@ -102,21 +106,20 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="flex w-full mb-6 gap-2">
-  <input
-    type="text"
-    placeholder="Search users..."
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-    className="px-4 py-2 rounded bg-gray-800 w-full"
-  />
-  <button
-    onClick={() => setShowAddModal(true)}
-    className="bg-cyan-600 hover:bg-cyan-700 px-4 py-2 rounded whitespace-nowrap"
-  >
-    Add User
-  </button>
-</div>
-
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="px-4 py-2 rounded bg-gray-800 w-full"
+          />
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="bg-cyan-600 hover:bg-cyan-700 px-4 py-2 rounded whitespace-nowrap"
+          >
+            Add User
+          </button>
+        </div>
 
         {isLoading ? (
           <div className="flex justify-center my-8">
@@ -151,7 +154,7 @@ const Dashboard: React.FC = () => {
                     </td>
                     <td className="px-4 py-2">{user.email}</td>
                     <td className="px-4 py-2">
-                      <button 
+                      <button
                         className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded text-sm mr-2"
                         onClick={() => handleEditClick(user)}
                       >
