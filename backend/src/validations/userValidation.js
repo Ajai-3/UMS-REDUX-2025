@@ -91,3 +91,33 @@ export const adminLoginSchema = z.object({
             }
         )
 })
+
+// ===========================================================================================================
+// UPDATE PROFILE SCHEMA
+// ===========================================================================================================
+// This schema validates the user profile update data before updating the user's information.
+// ===========================================================================================================
+export const updateProfileSchema = z.object({
+    name: z
+        .string()
+        .min(3, "Name must be at least 3 characters long.")
+        .max(20, "Name must not exceed 20 characters.")
+        .regex(/^[a-zA-Z\s\-]+$/, "Name must contain only alphabetic characters, spaces, or hyphens.")
+        .transform((val) => val.charAt(0).toUpperCase() + val.slice(1).toLowerCase()),
+
+    email: z
+        .string()
+        .email("Please provide a valid email address.")
+        .min(1, "Email is required."),
+
+    image: z
+        .string()
+        .refine(
+            (val) =>
+                /^https?:\/\/.*\.(png|jpg|jpeg|gif|svg|webp)$/i.test(val),
+            {
+                message:
+                    "Please provide a valid image URL (http/https and ends in jpg, png, etc)."
+            }
+        )
+})
