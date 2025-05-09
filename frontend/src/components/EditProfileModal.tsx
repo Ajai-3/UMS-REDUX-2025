@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { updateUserProfile } from "../api/user/userService";
 import { updateUser } from "../redux/slices/userSlice";
 import { uploadImageToCloudinary } from "../utils/cloudinary";
+import { RootState } from "../redux/store";
 
 interface User {
   _id: string;
@@ -13,14 +14,20 @@ interface User {
 }
 
 interface EditProfileModalProps {
-  user: User;
   onClose: () => void;
 }
 
-const EditProfileModal: React.FC<EditProfileModalProps> = ({
-  user,
-  onClose,
-}) => {
+const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose }) => {
+  const user = useSelector(
+    (state: RootState) => state.user.user
+  ) as User | null;
+
+  if (!user) {
+    toast.error("User data not found");
+    onClose();
+    return null;
+  }
+
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [imageFile, setImageFile] = useState<File | null>(null);

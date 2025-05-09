@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setAdmin } from "../redux/slices/adminSlice";
 import { loginAdmin, dashboard } from "../api/admin/adminService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { RootState } from "../redux/store";
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -13,7 +14,17 @@ const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.admin.isAuthenticated
+  );
+  const adminData = useSelector((state: RootState) => state.admin.admin);
+
   useEffect(() => {
+    if (isAuthenticated && adminData) {
+      navigate("/admin/dashboard");
+      return;
+    }
+
     const hasAdminCookies =
       document.cookie.includes("adminAccessToken") ||
       document.cookie.includes("adminRefreshToken");
@@ -25,7 +36,7 @@ const AdminLogin: React.FC = () => {
           if (data) {
             dispatch(
               setAdmin({
-                admin: { email },
+                admin: data.admin,
                 isAuthenticated: true,
               })
             );
@@ -38,7 +49,7 @@ const AdminLogin: React.FC = () => {
 
       verifyAdminAuth();
     }
-  }, [dispatch, navigate, email]);
+  }, [dispatch, navigate, isAuthenticated, adminData]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,14 +77,12 @@ const AdminLogin: React.FC = () => {
       const data = await loginAdmin(email, password);
 
       if (data) {
-        // Store admin data in Redux
         dispatch(
           setAdmin({
             admin: data.admin,
           })
         );
 
-        // Set localStorage flag for admin authentication
         localStorage.setItem("adminLoggedIn", "true");
 
         toast.success("Admin login successful");

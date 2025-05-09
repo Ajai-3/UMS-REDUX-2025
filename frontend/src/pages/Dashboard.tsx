@@ -2,22 +2,31 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logOut } from "../redux/slices/adminSlice";
 import AddUserModal from "../components/AddUserModal";
 import EditUserModal from "../components/EditUserModal";
 import { dashboard, deleteUser, logoutAdmin } from "../api/admin/adminService";
-
+import { RootState } from "../redux/store";
 interface User {
   _id: string;
   name: string;
   email: string;
   image: string;
 }
+interface Admin {
+  _id: string;
+  email: string;
+}
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const adminData = useSelector(
+    (state: RootState) => state.admin.admin
+  ) as Admin | null;
+
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -101,7 +110,14 @@ const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <div>
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            {adminData && (
+              <p className="text-gray-400 mt-1">
+                Logged in as: {adminData.email}
+              </p>
+            )}
+          </div>
           <button
             onClick={handleAdminLogout}
             className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
