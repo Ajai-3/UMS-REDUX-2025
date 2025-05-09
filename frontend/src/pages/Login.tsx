@@ -24,20 +24,16 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Check if user is already logged in when component mounts
   useEffect(() => {
-    // Check for auth cookies
     const hasCookies =
       document.cookie.includes("accessToken") ||
       document.cookie.includes("refreshToken");
 
     if (hasCookies) {
-      // If they have auth cookies, try to get their profile
       const fetchUserProfile = async () => {
         try {
           const data = await home();
           if (data) {
-            // If successful, update Redux and redirect
             dispatch(
               setUser({
                 user: data,
@@ -47,7 +43,6 @@ const Login: React.FC = () => {
             navigate("/users/home");
           }
         } catch (error) {
-          // If error, cookies might be invalid
           console.error("Failed to verify authentication:", error);
         }
       };

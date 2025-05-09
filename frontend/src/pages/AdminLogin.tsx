@@ -13,20 +13,16 @@ const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Check if admin is already logged in when component mounts
   useEffect(() => {
-    // Check for admin auth cookies
     const hasAdminCookies =
       document.cookie.includes("adminAccessToken") ||
       document.cookie.includes("adminRefreshToken");
 
     if (hasAdminCookies) {
-      // If they have admin auth cookies, try to get their dashboard
       const verifyAdminAuth = async () => {
         try {
           const data = await dashboard("");
           if (data) {
-            // If successful, update Redux and redirect
             dispatch(
               setAdmin({
                 admin: { email },
@@ -36,7 +32,6 @@ const AdminLogin: React.FC = () => {
             navigate("/admin/dashboard");
           }
         } catch (error) {
-          // If error, cookies might be invalid
           console.error("Failed to verify admin authentication:", error);
         }
       };
@@ -48,13 +43,11 @@ const AdminLogin: React.FC = () => {
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Form validation
     if (!email.trim()) {
       toast.error("Email is required");
       return;
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast.error("Please enter a valid email address");
